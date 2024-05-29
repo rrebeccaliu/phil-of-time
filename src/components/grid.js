@@ -23,10 +23,37 @@ const Grid = ({ grid }) => {
           x2={x2}
           y2={y2}
           stroke="red"
-          strokeWidth="1"
+          strokeWidth="2"
         />
       );
     });
+  };
+
+  console.log(selectedCells);
+
+  const renderLightCone = () => {
+    if (selectedCells.length === 0) return null;
+  
+    const lastCell = selectedCells[selectedCells.length - 1];
+    const x = lastCell.x * 9 + 4.5;
+    const y = lastCell.y * 9 + 4.5;
+    const width = grid.cells * 9;
+    const height = grid.rows * 9;
+  
+    return (
+      <>
+        {/* Upper triangle (light cone) */}
+        <polygon
+          points={`${x},${y} ${Math.min(0, x-y)},${Math.min(0, y-x)} 0,0 ${width},0 ${Math.min(x+y, width)},${Math.max(0, x+y-height)}`}
+          fill="rgba(255, 100, 0, 0.5)"
+        />
+        {/* Lower triangle (light cone) */}
+        <polygon
+          points={`${x},${y} ${Math.max(0, x+y-width)},${Math.min(x+y, height)} 0,${height} ${width},${height} ${Math.min(width, width+x-y)},${Math.min(height, height+y-x)}`}
+          fill="rgba(255, 100, 0, 0.5)"
+        />
+      </>
+    );
   };
 
   return (
@@ -57,6 +84,7 @@ const Grid = ({ grid }) => {
               ))}
             </g>
           ))}
+          {renderLightCone()}
           {renderLines()}
         </svg>
       </div>
