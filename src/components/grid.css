@@ -18,3 +18,32 @@ dd {
   padding: 0;
   list-style: none;
 }
+
+.grid-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-svg {
+  border: 1px solid black;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  fill: rgb(156, 153, 202);
+  stroke: none;
+}
+
+.cell.selected {
+  fill: red;
+}
+
+.line {
+  stroke: red;
+  stroke-width: 1;
+}
