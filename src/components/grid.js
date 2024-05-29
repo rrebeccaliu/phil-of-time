@@ -2,37 +2,55 @@ import React, { useState } from 'react';
 import './grid.css';
 
 const Grid = ({ grid }) => {
-  const [selectedCells, setSelectedCells] = useState([]);
+  const [selectedCells, setSelectedCells] = useState([[]]);
 
   const handleClick = (e, rowIndex, cellIndex) => {
-    setSelectedCells([...selectedCells, { x: cellIndex, y: rowIndex }]);
-  };
+    const isShiftPressed = e.shiftKey;
+    const newPoint = { x: cellIndex, y: rowIndex };
 
-  const renderLines = () => {
-    return selectedCells.slice(1).map((cell, index) => {
-      const prevCell = selectedCells[index];
-      const x1 = prevCell.x * 9 + 4.5;  // Centering the line in the cell
-      const y1 = prevCell.y * 9 + 4.5;
-      const x2 = cell.x * 9 + 4.5;
-      const y2 = cell.y * 9 + 4.5;
-      return (
-        <line
-          key={index}
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke="red"
-          strokeWidth="2"
-        />
-      );
+    setSelectedCells(prevSelectedCells => {
+      const newSelectedCells = [...prevSelectedCells];
+      if (isShiftPressed) {
+        newSelectedCells.push([newPoint]);
+      } else {
+        const lastList = newSelectedCells[newSelectedCells.length - 1];
+        if (!lastList.some(point => point.x === cellIndex && point.y === rowIndex)) {
+          lastList.push(newPoint);
+        }
+      }
+      return newSelectedCells;
     });
   };
 
-  const renderLightCone = () => {
-    if (selectedCells.length === 0) return null;
+  const renderLines = () => {
+    return selectedCells.flatMap((list, listIndex) =>
+      list.slice(1).map((cell, index) => {
+        const prevCell = list[index];
+        const x1 = prevCell.x * 9 + 4.5;
+        const y1 = prevCell.y * 9 + 4.5;
+        const x2 = cell.x * 9 + 4.5;
+        const y2 = cell.y * 9 + 4.5;
+        return (
+          <line
+            key={`${listIndex}-${index}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke="red"
+            strokeWidth="2"
+          />
+        );
+      })
+    );
+  };
+  console.log(selectedCells);
 
-    const lastCell = selectedCells[selectedCells.length - 1];
+  const renderLightCone = () => {
+    const lastList = selectedCells[selectedCells.length - 1];
+    if (lastList.length === 0) return null;
+
+    const lastCell = lastList[lastList.length - 1];
     const x = lastCell.x * 9 + 4.5;
     const y = lastCell.y * 9 + 4.5;
     const width = grid.cells * 9;
@@ -73,7 +91,7 @@ const Grid = ({ grid }) => {
                 {Array.from({ length: grid.cells }).map((_, cellIndex) => (
                   <rect
                     key={cellIndex}
-                    className={`cell ${selectedCells.some(cell => cell.x === cellIndex && cell.y === rowIndex) ? 'selected' : ''}`}
+                    className={`cell ${selectedCells.flat().some(cell => cell.x === cellIndex && cell.y === rowIndex) ? 'selected' : ''}`}
                     x={cellIndex * 9}
                     y={rowIndex * 9}
                     width="8"
@@ -93,20 +111,22 @@ const Grid = ({ grid }) => {
           <div className="points-container">
             <h2>Selected Points</h2>
             <ul>
-              {selectedCells.map((cell, index) => (
+              {selectedCells.flat().map((cell, index) => (
                 <li key={index}>Point {index + 1}: ({cell.x}, {cell.y})</li>
               ))}
             </ul>
           </div>
           <div className="lines-container">
             <h2>Lines</h2>
-            <ul>
-              {selectedCells.slice(1).map((cell, index) => (
-                <li key={index}>
-                  Line {index + 1}: ({selectedCells[index].x}, {selectedCells[index].y}) to ({cell.x}, {cell.y})
-                </li>
-              ))}
-            </ul>
+            {selectedCells.map((list, listIndex) => (
+              <ul key={listIndex}>
+                {list.slice(1).map((cell, index) => (
+                  <li key={`${listIndex}-${index}`}>
+                    Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y})
+                  </li>
+                ))}
+              </ul>
+            ))}
           </div>
         </div>
       </div>
