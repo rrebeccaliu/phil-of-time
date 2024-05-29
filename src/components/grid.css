@@ -1,22 +1,7 @@
-.item {
-  width: 8px;
-  min-width: 8px;
-  height: 8px;
-  min-height: 8px;
-  background-color: rgb(156, 153, 202);
-  margin: 0.5px;
-}
-
-.item.selected {
-  background-color: red;
-}
-
-ul,
-ol,
-dd {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.content-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .grid-container {
@@ -46,4 +31,23 @@ dd {
 .line {
   stroke: red;
   stroke-width: 1;
+}
+
+.info-container {
+  margin-left: 20px;
+  color: black;
+  text-align: left;
+}
+
+.info-container h2 {
+  margin: 0 0 10px 0;
+}
+
+.info-container ul {
+  list-style: none;
+  padding-left: 20px;
+}
+
+.info-container li {
+  margin-bottom: 5px;
 }

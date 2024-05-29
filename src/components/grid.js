@@ -33,13 +33,13 @@ const Grid = ({ grid }) => {
 
   const renderLightCone = () => {
     if (selectedCells.length === 0) return null;
-  
+
     const lastCell = selectedCells[selectedCells.length - 1];
     const x = lastCell.x * 9 + 4.5;
     const y = lastCell.y * 9 + 4.5;
     const width = grid.cells * 9;
     const height = grid.rows * 9;
-  
+
     return (
       <>
         {/* Upper triangle (light cone) */}
@@ -59,34 +59,52 @@ const Grid = ({ grid }) => {
   return (
     <main>
       <h1>Minkowski Space-Time</h1>
-      <div className="grid-container">
-        <svg className="grid-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}>
-          {/* Background rectangle */}
-          <rect
-            x="0"
-            y="0"
-            width={grid.cells * 9}
-            height={grid.rows * 9}
-            fill="black"
-          />
-          {Array.from({ length: grid.rows }).map((_, rowIndex) => (
-            <g className="row" key={rowIndex}>
-              {Array.from({ length: grid.cells }).map((_, cellIndex) => (
-                <rect
-                  key={cellIndex}
-                  className={`cell ${selectedCells.some(cell => cell.x === cellIndex && cell.y === rowIndex) ? 'selected' : ''}`}
-                  x={cellIndex * 9}
-                  y={rowIndex * 9}
-                  width="8"
-                  height="8"
-                  onClick={(e) => handleClick(e, rowIndex, cellIndex)}
-                />
-              ))}
-            </g>
-          ))}
-          {renderLightCone()}
-          {renderLines()}
-        </svg>
+      <div className="content-container">
+        <div className="grid-container">
+          <svg className="grid-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}>
+            {/* Background rectangle */}
+            <rect
+              x="0"
+              y="0"
+              width={grid.cells * 9}
+              height={grid.rows * 9}
+              fill="black"
+            />
+            {Array.from({ length: grid.rows }).map((_, rowIndex) => (
+              <g className="row" key={rowIndex}>
+                {Array.from({ length: grid.cells }).map((_, cellIndex) => (
+                  <rect
+                    key={cellIndex}
+                    className={`cell ${selectedCells.some(cell => cell.x === cellIndex && cell.y === rowIndex) ? 'selected' : ''}`}
+                    x={cellIndex * 9}
+                    y={rowIndex * 9}
+                    width="8"
+                    height="8"
+                    onClick={(e) => handleClick(e, rowIndex, cellIndex)}
+                  />
+                ))}
+              </g>
+            ))}
+            {renderLightCone()}
+            {renderLines()}
+          </svg>
+        </div>
+        <div className="info-container">
+          <h2>Selected Points</h2>
+          <ul>
+            {selectedCells.map((cell, index) => (
+              <li key={index}>Point {index + 1}: ({cell.x}, {cell.y})</li>
+            ))}
+          </ul>
+          <h2>Lines</h2>
+          <ul>
+            {selectedCells.slice(1).map((cell, index) => (
+              <li key={index}>
+                Line {index + 1}: ({selectedCells[index].x}, {selectedCells[index].y}) to ({cell.x}, {cell.y})
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </main>
   );
