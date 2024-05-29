@@ -29,8 +29,6 @@ const Grid = ({ grid }) => {
     });
   };
 
-  console.log(selectedCells);
-
   const renderLightCone = () => {
     if (selectedCells.length === 0) return null;
 
@@ -85,25 +83,31 @@ const Grid = ({ grid }) => {
                 ))}
               </g>
             ))}
+          </svg>
+          <svg className="overlay-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}>
             {renderLightCone()}
             {renderLines()}
           </svg>
         </div>
         <div className="info-container">
-          <h2>Selected Points</h2>
-          <ul>
-            {selectedCells.map((cell, index) => (
-              <li key={index}>Point {index + 1}: ({cell.x}, {cell.y})</li>
-            ))}
-          </ul>
-          <h2>Lines</h2>
-          <ul>
-            {selectedCells.slice(1).map((cell, index) => (
-              <li key={index}>
-                Line {index + 1}: ({selectedCells[index].x}, {selectedCells[index].y}) to ({cell.x}, {cell.y})
-              </li>
-            ))}
-          </ul>
+          <div className="points-container">
+            <h2>Selected Points</h2>
+            <ul>
+              {selectedCells.map((cell, index) => (
+                <li key={index}>Point {index + 1}: ({cell.x}, {cell.y})</li>
+              ))}
+            </ul>
+          </div>
+          <div className="lines-container">
+            <h2>Lines</h2>
+            <ul>
+              {selectedCells.slice(1).map((cell, index) => (
+                <li key={index}>
+                  Line {index + 1}: ({selectedCells[index].x}, {selectedCells[index].y}) to ({cell.x}, {cell.y})
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </main>
