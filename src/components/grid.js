@@ -3,10 +3,11 @@ import './grid.css';
 
 const Grid = ({ grid }) => {
   const [selectedCells, setSelectedCells] = useState([[]]);
+  const [pointCount, setPointCount] = useState(0); // State variable to keep track of total points
 
   const handleClick = (e, rowIndex, cellIndex) => {
     const isShiftPressed = e.shiftKey;
-    const newPoint = { x: cellIndex, y: rowIndex };
+    const newPoint = { x: cellIndex, y: rowIndex, label: pointCount + 1 };
 
     setSelectedCells(prevSelectedCells => {
       const newSelectedCells = [...prevSelectedCells];
@@ -20,6 +21,22 @@ const Grid = ({ grid }) => {
       }
       return newSelectedCells;
     });
+
+    // Increment the point count
+    setPointCount(prevCount => prevCount + 1);
+  };
+
+  const handleDelete = (labelToDelete) => {
+    setSelectedCells(prevSelectedCells => {
+      let newSelectedCells = prevSelectedCells.map(list => list.filter(point => point.label !== labelToDelete)).filter(list => list.length > 0);
+
+      // Ensure at least one empty list is present to allow new points to be added
+      if (newSelectedCells.length === 0) {
+        newSelectedCells = [[]];
+      }
+
+      return newSelectedCells;
+    });
   };
 
   const renderLines = () => {
@@ -30,21 +47,38 @@ const Grid = ({ grid }) => {
         const y1 = prevCell.y * 9 + 4.5;
         const x2 = cell.x * 9 + 4.5;
         const y2 = cell.y * 9 + 4.5;
+        const deltaY = cell.y - prevCell.y;
+        const deltaX = cell.x - prevCell.x;
+        const speed = (deltaX / deltaY).toFixed(2);
         return (
-          <line
-            key={`${listIndex}-${index}`}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="red"
-            strokeWidth="2"
-          />
+          <g key={`${listIndex}-${index}`}>
+            <line
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="red"
+              strokeWidth="2"
+            />
+          </g>
         );
       })
     );
   };
-  console.log(selectedCells);
+
+  const renderPoints = () => {
+    return selectedCells.flatMap((list, listIndex) =>
+      list.map((cell, index) => {
+        const x = cell.x * 9 + 4.5;
+        const y = cell.y * 9 + 4.5;
+        return (
+          <text key={`${listIndex}-${index}`} x={x + 5} y={y - 5} fill="black">
+            {cell.label}
+          </text>
+        );
+      })
+    );
+  };
 
   const renderLightCone = () => {
     const lastList = selectedCells[selectedCells.length - 1];
@@ -105,26 +139,36 @@ const Grid = ({ grid }) => {
           <svg className="overlay-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}>
             {renderLightCone()}
             {renderLines()}
+            {renderPoints()}
           </svg>
         </div>
         <div className="info-container">
           <div className="points-container">
             <h2>Selected Points</h2>
             <ul>
-              {selectedCells.flat().map((cell, index) => (
-                <li key={index}>Point {index + 1}: ({cell.x}, {cell.y})</li>
+              {selectedCells.flat().map((cell, cellIndex) => (
+                <li key={cellIndex}>
+                  Point {cell.label}: ({cell.x}, {cell.y}){' '}
+                  <button onClick={() => handleDelete(cell.label)}>Delete</button>
+                </li>
               ))}
             </ul>
           </div>
           <div className="lines-container">
-            <h2>Lines</h2>
+            <h2>Lines and Speeds</h2>
             {selectedCells.map((list, listIndex) => (
               <ul key={listIndex}>
-                {list.slice(1).map((cell, index) => (
-                  <li key={`${listIndex}-${index}`}>
-                    Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y})
-                  </li>
-                ))}
+                {list.slice(1).map((cell, index) => {
+                  const prevCell = list[index];
+                  const deltaY = cell.y - prevCell.y;
+                  const deltaX = cell.x - prevCell.x;
+                  const speed = (deltaX / deltaY).toFixed(2);
+                  return (
+                    <li key={`${listIndex}-${index}`}>
+                      Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed} c
+                    </li>
+                  );
+                })}
               </ul>
             ))}
           </div>
