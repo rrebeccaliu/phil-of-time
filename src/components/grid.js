@@ -176,7 +176,7 @@ const Grid = ({ grid }) => {
                   const speed = (deltaX / deltaY).toFixed(2);
                   return (
                     <li key={`${listIndex}-${index}`}>
-                      Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed}
+                      Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed} c
                     </li>
                   );
                 })}
