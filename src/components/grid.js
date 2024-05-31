@@ -1,13 +1,32 @@
 import React, { useState } from 'react';
 import './grid.css';
 
+const colors = [
+  '#FF5733', // Red-Orange
+  '#33FF57', // Lime
+  '#3357FF', // Blue
+  '#FF33A8', // Pink
+  '#A833FF', // Purple
+  '#33FFF2', // Cyan
+  '#FFD633', // Yellow
+  '#FF8333', // Orange
+  '#33FF83', // Green
+  '#FF3333', // Red
+  '#3333FF', // Navy
+  '#33A8FF', // Sky Blue
+  '#A8FF33', // Light Green
+  '#FFA833', // Light Orange
+  '#FF5733', // Coral
+  '#5733FF', // Indigo
+  '#33FF57', // Spring Green
+  '#FF33F2', // Magenta
+  '#FF5733', // Tomato
+  '#33FFF2'  // Turquoise
+];
+
 const getRandomColor = () => {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  const randomIndex = Math.floor(Math.random() * colors.length);
+  return colors[randomIndex];
 };
 
 const Grid = ({ grid }) => {
@@ -31,7 +50,7 @@ const Grid = ({ grid }) => {
         // Check if the point is outside the light cone
         const deltaX = Math.abs(cellIndex - lastPoint.x);
         const deltaY = Math.abs(rowIndex - lastPoint.y);
-        if (deltaX > deltaY) {
+        if (deltaX > deltaY || lastPoint.y < rowIndex) {
           alert('You cannot reach that point.');
           return prevSelectedCells; // Do not add the point
         }
