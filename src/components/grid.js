@@ -7,11 +7,11 @@ const Grid = ({ grid }) => {
 
   const handleClick = (e, rowIndex, cellIndex) => {
     const isShiftPressed = e.shiftKey;
-    const newPoint = { x: cellIndex, y: rowIndex, label: pointCount + 1 };
-
+  
     setSelectedCells(prevSelectedCells => {
       const newSelectedCells = [...prevSelectedCells];
-
+      let newPointCount = pointCount; // Local variable to keep track of new point count
+  
       if (!isShiftPressed && newSelectedCells.length > 0 && newSelectedCells[newSelectedCells.length - 1].length > 0) {
         const lastList = newSelectedCells[newSelectedCells.length - 1];
         const lastPoint = lastList[lastList.length - 1];
@@ -24,7 +24,9 @@ const Grid = ({ grid }) => {
           return prevSelectedCells; // Do not add the point
         }
       }
-
+  
+      const newPoint = { x: cellIndex, y: rowIndex, label: newPointCount + 1 }; // Use local variable for label
+  
       if (isShiftPressed) {
         newSelectedCells.push([newPoint]);
       } else {
@@ -33,11 +35,13 @@ const Grid = ({ grid }) => {
           lastList.push(newPoint);
         }
       }
-
-      setPointCount(prevCount => prevCount + 1); // Increment the point count
+  
+      newPointCount += 1; // Increment local variable
+      setPointCount(newPointCount); // Update state with local variable
       return newSelectedCells;
     });
   };
+  
 
   const handleDelete = (labelToDelete) => {
     setSelectedCells(prevSelectedCells => {
@@ -173,7 +177,7 @@ const Grid = ({ grid }) => {
                   const prevCell = list[index];
                   const deltaY = cell.y - prevCell.y;
                   const deltaX = cell.x - prevCell.x;
-                  const speed = (deltaX / deltaY).toFixed(2);
+                  const speed = Math.abs(deltaX / deltaY).toFixed(2);
                   return (
                     <li key={`${listIndex}-${index}`}>
                       Line {index + 1}: ({list[index].x}, {list[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed} c
