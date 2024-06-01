@@ -2,31 +2,19 @@ import React, { useState } from 'react';
 import './grid.css';
 
 const colors = [
-  '#FF5733', // Red-Orange
-  '#33FF57', // Lime
-  '#3357FF', // Blue
-  '#FF33A8', // Pink
-  '#A833FF', // Purple
-  '#33FFF2', // Cyan
-  '#FFD633', // Yellow
-  '#FF8333', // Orange
-  '#33FF83', // Green
-  '#FF3333', // Red
-  '#3333FF', // Navy
-  '#33A8FF', // Sky Blue
-  '#A8FF33', // Light Green
-  '#FFA833', // Light Orange
-  '#FF5733', // Coral
-  '#5733FF', // Indigo
-  '#33FF57', // Spring Green
-  '#FF33F2', // Magenta
-  '#FF5733', // Tomato
-  '#33FFF2'  // Turquoise
+  '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#A833FF', 
+  '#33FFF2', '#FFD633', '#FF8333', '#33FF83', '#FF3333', 
+  '#3333FF', '#33A8FF', '#A8FF33', '#FFA833', '#FF5733', 
+  '#5733FF', '#33FF57', '#FF33F2', '#FF5733', '#33FFF2'
 ];
 
 const getRandomColor = () => {
   const randomIndex = Math.floor(Math.random() * colors.length);
   return colors[randomIndex];
+};
+
+const calculateElapsedTime = (x1, y1, x2, y2) => {
+  return Math.sqrt(((y2 - y1) ** 2) - ((x2 - x1) ** 2) );
 };
 
 const Grid = ({ grid }) => {
@@ -164,6 +152,17 @@ const Grid = ({ grid }) => {
     return 'rgb(156, 153, 202)';
   };
 
+  const calculateGroupElapsedTime = (points) => {
+    let totalElapsedTime = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+      const { x: x1, y: y1 } = points[i];
+      const { x: x2, y: y2 } = points[i + 1];
+      totalElapsedTime += calculateElapsedTime(x1, y1, x2, y2);
+    }
+    return totalElapsedTime;
+  };
+
+
   return (
     <main>
       <h1>Minkowski Space-Time</h1>
@@ -211,19 +210,22 @@ const Grid = ({ grid }) => {
           <div className="lines-container">
             <h2>Lines and Speeds</h2>
             {selectedCells.map((list, listIndex) => (
-              <ul key={listIndex}>
-                {list.points.slice(1).map((cell, index) => {
-                  const prevCell = list.points[index];
-                  const deltaY = cell.y - prevCell.y;
-                  const deltaX = cell.x - prevCell.x;
-                  const speed = Math.abs((deltaX / deltaY).toFixed(2));
-                  return (
-                    <li key={`${listIndex}-${index}`}>
-                      Line {index + 1}: ({list.points[index].x}, {list.points[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed} c
-                    </li>
-                  );
-                })}
-              </ul>
+              <div key={listIndex}>
+                <ul>
+                  {list.points.slice(1).map((cell, index) => {
+                    const prevCell = list.points[index];
+                    const deltaY = cell.y - prevCell.y;
+                    const deltaX = cell.x - prevCell.x;
+                    const speed = Math.abs((deltaX / deltaY).toFixed(2));
+                    return (
+                      <li key={`${listIndex}-${index}`}>
+                        Line {index + 1}: ({list.points[index].x}, {list.points[index].y}) to ({cell.x}, {cell.y}) - Speed: {speed} c
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p>Elapsed Time: {calculateGroupElapsedTime(list.points)}</p>
+              </div>
             ))}
           </div>
         </div>
