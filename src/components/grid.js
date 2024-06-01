@@ -14,7 +14,7 @@ const getRandomColor = () => {
 };
 
 const calculateElapsedTime = (x1, y1, x2, y2) => {
-  return Math.sqrt(((y2 - y1) ** 2) - ((x2 - x1) ** 2) );
+  return Math.sqrt(((y2 - y1) ** 2) - ((x2 - x1) ** 2));
 };
 
 const Grid = ({ grid }) => {
@@ -26,10 +26,10 @@ const Grid = ({ grid }) => {
     console.log(`handleClick called for cell (${cellIndex}, ${rowIndex})`);
 
     const isShiftPressed = e.shiftKey;
-  
+    let alertTriggered = false;
     setSelectedCells(prevSelectedCells => {
       const newSelectedCells = [...prevSelectedCells];
-      let newPointCount = pointCount
+      let newPointCount = pointCount;
 
       if (!isShiftPressed && newSelectedCells.length > 0 && newSelectedCells[newSelectedCells.length - 1].points.length > 0) {
         const lastList = newSelectedCells[newSelectedCells.length - 1].points;
@@ -39,28 +39,31 @@ const Grid = ({ grid }) => {
         const deltaX = Math.abs(cellIndex - lastPoint.x);
         const deltaY = Math.abs(rowIndex - lastPoint.y);
         if (deltaX > deltaY || lastPoint.y < rowIndex) {
-          alert('You cannot reach that point.');
+          if(!alertTriggered){
+            alert('You cannot reach that point.');
+            alertTriggered = true;
+          }
           return prevSelectedCells; // Do not add the point
         }
       }
-  
+
       const newPoint = { x: cellIndex, y: rowIndex, label: newPointCount + 1 }; // Use local variable for label
-  
+
       if (isShiftPressed) {
         newSelectedCells.push({ points: [newPoint], color: getRandomColor() });
+        newPointCount += 1; // Increment local variable only if a new point is added
       } else {
         const lastList = newSelectedCells[newSelectedCells.length - 1].points;
+        newPointCount += 1; 
         if (!lastList.some(point => point.x === cellIndex && point.y === rowIndex)) {
           lastList.push(newPoint);
         }
       }
 
-      // Increment the point count only if a new point is added
-      setPointCount(prevCount => prevCount + 1);
+      setPointCount(newPointCount); // Update state with local variable
       return newSelectedCells;
     });
   };
-  
 
   const handleDelete = (labelToDelete) => {
     setSelectedCells(prevSelectedCells => {
@@ -161,7 +164,6 @@ const Grid = ({ grid }) => {
     }
     return totalElapsedTime;
   };
-
 
   return (
     <main>
