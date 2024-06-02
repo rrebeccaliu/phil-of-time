@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './grid.css';
 
 const colors = [
-  '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#A833FF', 
-  '#33FFF2', '#FFD633', '#FF8333', '#33FF83', '#FF3333', 
-  '#3333FF', '#33A8FF', '#A8FF33', '#FFA833', '#FF5733', 
+  '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#A833FF',
+  '#33FFF2', '#FFD633', '#FF8333', '#33FF83', '#FF3333',
+  '#3333FF', '#33A8FF', '#A8FF33', '#FFA833', '#FF5733',
   '#5733FF', '#33FF57', '#FF33F2', '#FF5733', '#33FFF2'
 ];
 
@@ -19,10 +19,80 @@ const calculateElapsedTime = (x1, y1, x2, y2) => {
 
 const Grid = ({ grid }) => {
   const [selectedCells, setSelectedCells] = useState([{ points: [], color: getRandomColor() }]);
-  const [pointCount, setPointCount] = useState(0); // State variable to keep track of total points
+  const [pointCount, setPointCount] = useState(0);
+  const [draggingPoint, setDraggingPoint] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const holdTimeout = useRef(null);
+  const holdDuration = 1000;
+
+  const getCellCoordinates = (e) => {
+    const rect = e.target.closest('svg').getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / 9);
+    const y = Math.floor((e.clientY - rect.top) / 9);
+    return { x, y };
+  };
+
+  const handleMouseDown = (e, rowIndex, cellIndex) => {
+    e.preventDefault();
+    console.log(`Mouse down on cell (${cellIndex}, ${rowIndex})`);
+
+    const existingPoint = selectedCells.flatMap(list => list.points).find(point => point.x === cellIndex && point.y === rowIndex);
+    if (existingPoint) {
+      console.log(`Clicked on existing point (${existingPoint.x}, ${existingPoint.y})`);
+      setDraggingPoint(existingPoint);
+      setIsDragging(true);
+      console.log('Dragging point set to:', existingPoint);
+    } else {
+      holdTimeout.current = setTimeout(() => {
+        console.log(`Hold and click on cell (${cellIndex}, ${rowIndex})`);
+        setIsDragging(false); // Reset dragging state after hold
+        // Implement any additional logic for hold and click here
+      }, holdDuration);
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    clearTimeout(holdTimeout.current);
+
+    const { x: cellIndex, y: rowIndex } = getCellCoordinates(e);
+    console.log(`Mouse up on cell (${cellIndex}, ${rowIndex})`);
+
+    if (isDragging && draggingPoint) {
+      console.log('Dragging is true');
+      console.log('Dragging point:', draggingPoint);
+      setSelectedCells(prevSelectedCells => {
+        const newSelectedCells = [...prevSelectedCells];
+        const listContainingPointIndex = newSelectedCells.findIndex(list =>
+          list.points.some(point => point.x === draggingPoint.x && point.y === draggingPoint.y)
+        );
+        console.log('List containing point index:', listContainingPointIndex); // Added console log
+        if (listContainingPointIndex !== -1) {
+          const pointIndex = newSelectedCells[listContainingPointIndex].points.findIndex(point => point.x === draggingPoint.x && point.y === draggingPoint.y);
+          newSelectedCells[listContainingPointIndex].points[pointIndex] = { ...draggingPoint, x: cellIndex, y: rowIndex };
+          console.log(`Moved point to (${cellIndex}, ${rowIndex})`);
+        }
+
+        // Log all points
+        const allPoints = newSelectedCells.flatMap(list => list.points);
+        console.log('All points:', allPoints);
+
+        return newSelectedCells;
+      });
+
+      setDraggingPoint(null);
+      setIsDragging(false);
+    } else {
+      handleClick(e, rowIndex, cellIndex);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    clearTimeout(holdTimeout.current);
+    console.log('Mouse left the cell');
+  };
 
   const handleClick = (e, rowIndex, cellIndex) => {
-    e.stopPropagation(); // Stop event propagation
+    e.stopPropagation();
     console.log(`handleClick called for cell (${cellIndex}, ${rowIndex})`);
 
     const isShiftPressed = e.shiftKey;
@@ -35,34 +105,62 @@ const Grid = ({ grid }) => {
         const lastList = newSelectedCells[newSelectedCells.length - 1].points;
         const lastPoint = lastList[lastList.length - 1];
 
-        // Check if the point is outside the light cone
         const deltaX = Math.abs(cellIndex - lastPoint.x);
         const deltaY = Math.abs(rowIndex - lastPoint.y);
         if (deltaX > deltaY || lastPoint.y < rowIndex) {
-          if(!alertTriggered){
+          if (!alertTriggered) {
             alert('You cannot reach that point.');
             alertTriggered = true;
           }
-          return prevSelectedCells; // Do not add the point
+          return prevSelectedCells;
         }
       }
 
-      const newPoint = { x: cellIndex, y: rowIndex, label: newPointCount + 1 }; // Use local variable for label
+      const newPoint = { x: cellIndex, y: rowIndex, label: newPointCount + 1 };
 
       if (isShiftPressed) {
         newSelectedCells.push({ points: [newPoint], color: getRandomColor() });
-        newPointCount += 1; // Increment local variable only if a new point is added
+        newPointCount += 1;
       } else {
         const lastList = newSelectedCells[newSelectedCells.length - 1].points;
-        newPointCount += 1; 
+        newPointCount += 1;
         if (!lastList.some(point => point.x === cellIndex && point.y === rowIndex)) {
           lastList.push(newPoint);
         }
       }
 
-      setPointCount(newPointCount); // Update state with local variable
+      setPointCount(newPointCount);
+
+      // Log all points
+      const allPoints = newSelectedCells.flatMap(list => list.points);
+      console.log('All points:', allPoints);
+
       return newSelectedCells;
     });
+  };
+
+  const handleMouseMove = (e) => {
+    if (draggingPoint !== null && isDragging) {
+      console.log('Mouse move event', e);
+      console.log('Dragging point:', draggingPoint);
+      const { x: cellIndex, y: rowIndex } = getCellCoordinates(e);
+
+      setSelectedCells(prevSelectedCells => {
+        const newSelectedCells = [...prevSelectedCells];
+        const listContainingPointIndex = newSelectedCells.findIndex(list => list.points.includes(draggingPoint));
+        console.log('List containing point index:', listContainingPointIndex); // Added console log
+        if (listContainingPointIndex !== -1) {
+          const pointIndex = newSelectedCells[listContainingPointIndex].points.indexOf(draggingPoint);
+          newSelectedCells[listContainingPointIndex].points[pointIndex] = { ...draggingPoint, x: cellIndex, y: rowIndex };
+        }
+
+        // Log all points
+        const allPoints = newSelectedCells.flatMap(list => list.points);
+        console.log('All points:', allPoints);
+
+        return newSelectedCells;
+      });
+    }
   };
 
   const handleDelete = (labelToDelete) => {
@@ -72,10 +170,13 @@ const Grid = ({ grid }) => {
         points: list.points.filter(point => point.label !== labelToDelete)
       })).filter(list => list.points.length > 0);
 
-      // Ensure at least one empty list is present to allow new points to be added
       if (newSelectedCells.length === 0) {
         newSelectedCells = [{ points: [], color: getRandomColor() }];
       }
+
+      // Log all points
+      const allPoints = newSelectedCells.flatMap(list => list.points);
+      console.log('All points:', allPoints);
 
       return newSelectedCells;
     });
@@ -112,7 +213,17 @@ const Grid = ({ grid }) => {
         const x = cell.x * 9 + 4.5;
         const y = cell.y * 9 + 4.5;
         return (
-          <text key={`${listIndex}-${index}`} x={x + 5} y={y - 5} fill={list.color}>
+          <text
+            key={`${listIndex}-${index}`}
+            x={x + 5}
+            y={y - 5}
+            fill={list.color}
+            onMouseDown={(e) => handleMouseDown(e, cell.y, cell.x)}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onMouseMove={handleMouseMove}
+            style={{ cursor: 'pointer' }}
+          >
             {cell.label}
           </text>
         );
@@ -132,12 +243,10 @@ const Grid = ({ grid }) => {
 
     return (
       <>
-        {/* Upper triangle (light cone) */}
         <polygon
           points={`${x},${y} ${Math.min(0, x-y)},${Math.min(0, y-x)} 0,0 ${width},0 ${Math.min(x+y, width)},${Math.max(0, x+y-height)}`}
           fill="rgba(255, 100, 0, 0.5)"
         />
-        {/* Lower triangle (light cone) */}
         <polygon
           points={`${x},${y} ${Math.max(0, x+y-width)},${Math.min(x+y, height)} 0,${height} ${width},${height} ${Math.min(width, width+x-y)},${Math.min(height, height+y-x)}`}
           fill="rgba(255, 100, 0, 0.5)"
@@ -170,7 +279,9 @@ const Grid = ({ grid }) => {
       <h1>Minkowski Space-Time</h1>
       <div className="content-container">
         <div className="grid-container">
-          <svg className="grid-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}>
+          <svg className="grid-svg" style={{ width: grid.cells * 9, height: grid.rows * 9 }}
+               onMouseMove={handleMouseMove}
+               onMouseUp={handleMouseUp}>
             {Array.from({ length: grid.rows }).map((_, rowIndex) => (
               <g className="row" key={rowIndex}>
                 {Array.from({ length: grid.cells }).map((_, cellIndex) => {
@@ -183,7 +294,8 @@ const Grid = ({ grid }) => {
                       y={rowIndex * 9}
                       width="8"
                       height="8"
-                      onClick={(e) => handleClick(e, rowIndex, cellIndex)}
+                      onMouseDown={(e) => handleMouseDown(e, rowIndex, cellIndex)}
+                      onMouseLeave={handleMouseLeave}
                       style={{ fill: cellColor }}
                     />
                   );
